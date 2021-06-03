@@ -22,13 +22,24 @@
 const std = @import("std");
 const testing = std.testing;
 
-usingnamespace @import("kizound").alsa;
+pub const alsa = @import("native/alsalib.zig");
 
-const tlog = std.log.scoped(.kizound_main);
-
-pub fn main() !void {
+test "Alsa pcm open" {
     const device = "hw:1,0";
-    var handle: *snd.pcm.t = undefined;
+    var handle: *alsa.snd.pcm.t = undefined;
 
-    snd.check(tlog, "pcm open", snd.pcm.open(&handle, device, .playback, 0));
+    try testing.expect(0 == alsa.snd.pcm.open(&handle, device, .playback, 0));
+}
+
+test "Writer" {
+    const writer = @import("writer.zig");
+
+    var context = try writer.Context.init(testing.allocator);
+    defer context.deinit();
+
+    var w = context.writer();
+    // returns the number of bytes has written
+    const n = try w.write("Hello World!");
+
+    try testing.expect(n == std.mem.len("Hello World!"));
 }

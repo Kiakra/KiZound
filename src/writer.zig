@@ -60,21 +60,20 @@ pub const Context = struct {
         if (leftspace < bytes.len) {
             const required = bytes.len - leftspace;
             //log.debug("required:{} ", .{required});
-            self.buffer = self.alloc.realloc(self.buffer, required) catch return WriteError.FailedToAllocateMemory;
+            self.buffer = self.alloc.realloc(self.buffer, self.buffer.len + required) catch return WriteError.FailedToAllocateMemory;
         }
 
         if (self.pos >= self.buffer.len) return WriteError.NoSpaceLeft;
 
-        const n = if (self.pos + bytes.len <= self.buffer.len)
-            bytes.len
-        else
-            self.buffer.len - self.pos;
+        var i: usize = self.pos;
+        var j: usize = 0;
+        while (i < self.buffer.len) : (i += 1) {
+            self.buffer[i] = bytes[j];
+            j += 1;
+        }
 
-        std.mem.copy(u8, self.buffer[self.pos .. self.pos + n], bytes[0..n]);
-        self.pos += n;
+        self.pos = i;
 
-        if (n == 0) return WriteError.NoSpaceLeft;
-
-        return bytes.len;
+        return j;
     }
 };
