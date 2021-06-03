@@ -28,7 +28,6 @@ pub const snd = struct {
         log.crit("{s}: {s}", .{ first, snd.strerror(result) });
     }
 
-    extern fn snd_strerror(errnum: c_int) [*c]const u8;
     /// snd_sterror
     pub fn strerror(errnum: i32) ?[]const u8 {
         const dat = snd_strerror(errnum);
@@ -38,7 +37,10 @@ pub const snd = struct {
     }
 
     pub const pcm = struct {
-        pub const t = extern opaque {};
+        pub const t = c.snd_pcm_t;
+        pub const hw_params_t = c.snd_pcm_hw_params_t;
+        pub const sw_params_t = c.snd_pcm_sw_params_t;
+
         pub const stream = extern enum(c_int) {
             playback,
             capture,
@@ -46,7 +48,6 @@ pub const snd = struct {
 
         pub const nonblock = c.SND_PCM_NONBLOCK;
 
-        extern fn snd_pcm_open(pcmp: ?**snd.pcm.t, name: [*c]const u8, stream: snd.pcm.stream, mode: c_int) c_int;
         /// snd_pcm_open
         pub fn open(pcmp: **t, name: ?[]const u8, st: stream, mode: i32) i32 {
             return snd_pcm_open(
@@ -56,5 +57,34 @@ pub const snd = struct {
                 mode,
             );
         }
+
+        /// snd_pcm_close
+        pub fn close(pcmp: *t) i32 {
+            return snd_pcm_close(pcmp);
+        }
+
+        /// snd_pcm_hw_params_sizeof
+        pub fn hw_params_sizeof() usize {
+            return snd_pcm_hw_params_sizeof();
+        }
+
+        /// snd_pcm_hw_params_alloca
+        pub fn hw_params_alloca(hw: **hw_params_t) void {
+            @compileError("does not implemented");
+            return c.snd_pcm_hw_params_alloca(hw);
+        }
+
+        /// snd_pcm_hw_params
+        pub fn hw_params(pcmp: *t, hw: *hw_params_t) i32 {
+            return snd_pcm_hw_params(pcmp, hw);
+        }
     };
 };
+
+extern fn snd_strerror(errnum: c_int) [*c]const u8;
+
+extern fn snd_pcm_open(pcmp: ?**snd.pcm.t, name: [*c]const u8, stream: snd.pcm.stream, mode: c_int) c_int;
+extern fn snd_pcm_close(pcmp: ?*snd.pcm.t) c_int;
+
+extern fn snd_pcm_hw_params_sizeof() c_ulong;
+extern fn snd_pcm_hw_params(pcmp: ?*snd.pcm.t, params: ?*snd.pcm.hw_params_t) c_int;

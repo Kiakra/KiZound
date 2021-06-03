@@ -24,11 +24,13 @@ const testing = std.testing;
 
 pub const alsa = @import("native/alsalib.zig");
 
-test "Alsa pcm open" {
+test "Alsa pcm init" {
     const device = "hw:1,0";
     var handle: *alsa.snd.pcm.t = undefined;
 
     try testing.expect(0 == alsa.snd.pcm.open(&handle, device, .playback, 0));
+
+    try testing.expect(0 == alsa.snd.pcm.close(handle));
 }
 
 test "Writer" {
